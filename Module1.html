@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exam Preparation - Module 1</title>
+    <style>
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-blue: #38bdf8;
+            --accent-green: #22c55e;
+            --accent-red: #ef4444;
+            --border-color: #334155;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body { background-color: var(--bg-primary); color: var(--text-main); padding: 2rem 1rem; display: flex; justify-content: center; }
+        .container { width: 100%; max-width: 850px; background-color: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 2rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5); }
+        h1 { font-size: 1.75rem; color: var(--accent-blue); margin-bottom: 1.5rem; border-bottom: 2px solid var(--border-color); padding-bottom: 0.7rem; }
+        .quiz-meta { display: flex; justify-content: space-between; color: var(--text-muted); font-size: 0.95rem; margin-bottom: 2rem; }
+        .question-card { margin-bottom: 2rem; }
+        .question-text { font-size: 1.2rem; font-weight: 600; margin-bottom: 1.5rem; line-height: 1.5; white-space: pre-line; }
+        .options-container { display: flex; flex-direction: column; gap: 1rem; }
+        .option-btn { background-color: var(--bg-primary); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; text-align: left; font-size: 1rem; cursor: pointer; transition: all 0.2s ease; }
+        .option-btn:hover:not(:disabled) { border-color: var(--accent-blue); background-color: rgba(56, 189, 248, 0.05); }
+        .option-btn.selected { border-color: var(--accent-blue); background-color: rgba(56, 189, 248, 0.15); font-weight: 600; }
+        .option-btn.correct { border-color: var(--accent-green); background-color: rgba(34, 197, 94, 0.15); font-weight: 600; }
+        .option-btn.incorrect { border-color: var(--accent-red); background-color: rgba(239, 68, 68, 0.15); }
+        .nav-controls { display: flex; justify-content: space-between; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color); }
+        .btn { background-color: var(--accent-blue); color: var(--bg-primary); border: none; border-radius: 6px; padding: 0.75rem 1.5rem; font-size: 1rem; font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
+        .btn:hover { opacity: 0.9; }
+        .btn:disabled { background-color: var(--border-color); color: var(--text-muted); cursor: not-allowed; }
+        .btn-secondary { background-color: transparent; color: var(--text-main); border: 1px solid var(--border-color); }
+        .btn-secondary:hover { background-color: var(--bg-primary); }
+        .explanation-box { margin-top: 1.5rem; background-color: rgba(56, 189, 248, 0.05); border-left: 4px solid var(--accent-blue); padding: 1.25rem; border-radius: 0 8px 8px 0; display: none; }
+        .explanation-title { font-weight: 700; color: var(--accent-blue); margin-bottom: 0.5rem; }
+        .explanation-text { font-size: 0.95rem; line-height: 1.6; color: #cbd5e1; }
+        .results-screen { text-align: center; display: none; }
+        .score-display { font-size: 3rem; font-weight: 800; color: var(--accent-blue); margin: 1.5rem 0; }
+        .results-summary { color: var(--text-muted); margin-bottom: 2rem; line-height: 1.5; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div id="quiz-screen">
+        <h1 id="quiz-title">Practice Quiz Bank - Module 1</h1>
+        <div class="quiz-meta">
+            <span id="progress-text">Question 1 of 10</span>
+            <span id="score-tracking">Score: 0/0</span>
+        </div>
+        <div class="question-card">
+            <div class="question-text" id="question-text">Loading question text...</div>
+            <div class="options-container" id="options-container"></div>
+            <div class="explanation-box" id="explanation-box">
+                <div class="explanation-title" id="explanation-status">Explanation</div>
+                <div class="explanation-text" id="explanation-text">Detailed review mapping...</div>
+            </div>
+        </div>
+        <div class="nav-controls">
+            <button class="btn btn-secondary" id="prev-btn" onclick="handlePrev()">Previous</button>
+            <button class="btn" id="action-btn" onclick="handleAction()">Submit Answer</button>
+        </div>
+    </div>
+    <div id="results-screen" class="results-screen">
+        <h1>Module 1 Completed</h1>
+        <div class="score-display" id="final-score">0%</div>
+        <div class="results-summary" id="results-summary"></div>
+        <button class="btn" onclick="restartQuiz()">Restart Module</button>
+        <button class="btn btn-secondary" style="margin-left: 10px;" onclick="enterReviewMode()">Review Answers</button>
+    </div>
+</div>
+<script>
+    const questionBank = [
+        {
+                "id": 1,
+                "original_id": 1,
+                "question": "Which document defines how a project is executed, monitored and controlled, and closed?",
+                "options": {
+                        "A": "Strategic plan",
+                        "B": "Project charter",
+                        "C": "Project management plan",
+                        "D": "Service level agreement"
+                },
+                "correctAnswer": "C",
+                "explanation": "According to the PMI (Project Management Institute) standards and the PMBOK\u00ae Guide (6th and 7th\nEditions), the Project Management Plan is the formal document that describes how the project will\nbe executed, monitored and controlled, and closed. It is the primary tool used by the Project\nManager to ensure the project goals are met.\nHere is the breakdown of why this is the correct document based on PMI frameworks:\nIntegration Management: The development of this plan is a key process within Project Integration\nManagement. It aggregates all subsidiary management plans (such as Scope, Schedule, Cost, Quality,\nQuestions and Answers PDF 2/1621\n\n\nQuestions & Answers PDF P-3\n\nResource, Communications, Risk, Procurement, and Stakeholder plans) and the three baselines\n(Scope, Schedule, and Cost Performance).\nExecution and Control: While the Project Charter (Option B) authorizes the project and the project\nmanager, it does not provide the \"how-to\" details. The Project Management Plan provides the\nroadmap for the team to follow and the benchmarks against which performance is measured.\nClosing: The plan defines the criteria for project closure and the transition of the final product,\nservice, or result to operations.\nBaselines: It contains the \"Performance Measurement Baseline,\" which is the integrated scope-\nschedule-cost plan against which project execution is compared to measure and manage\nperformance."
+        },
+        {
+                "id": 2,
+                "original_id": 2,
+                "question": "Which changes occur in risk and uncertainty as well as the cost of changes as the life cycle of a typical project progresses?",
+                "options": {
+                        "A": "Risk and uncertainty increase; the cost of changes increases.",
+                        "B": "Risk and uncertainty increase; the cost of changes decreases,",
+                        "C": "Risk and uncertainty decrease; the cost of changes increases.",
+                        "D": "Risk and uncertainty decrease; the cost of changes decreases."
+                },
+                "correctAnswer": "C",
+                "explanation": "According to the PMBOK\u00ae Guide (specifically regarding Project Life Cycle and Project Characteristics),\nthere is a standard relationship between time, risk, and cost as a project moves from initiation to\nclosure.\nRisk and Uncertainty: These are at their highest at the start of the project because many variables,\nrequirements, and external factors are unknown. As the project progresses, more information is\ngathered, the scope is clarified, and deliverables are completed, which causes risk and uncertainty to\ndecrease over time.\nQuestions and Answers PDF 3/1621\n\n\nQuestions & Answers PDF P-4\n\nCost of Changes: In the early stages (Initiation and Planning), the cost of making changes is relatively\nlow because the work hasn't physically started and few resources have been spent. However, as the\nproject moves into Execution and Monitoring and Controlling, more labor and materials are invested.\nChanging a requirement late in the life cycle (such as during testing or right before closing) is\nsignificantly more expensive because it often requires \"rework\" or discarding completed work,\ncausing the cost of changes to increase significantly.\nAnalysis of Options:\nA and B: Incorrect because risk and uncertainty naturally trend downward as the project\u2019s \"cone of\nuncertainty\" narrows through progressive elaboration.\nD: Incorrect because while it correctly identifies the decrease in risk, it ignores the financial reality\nthat late-stage changes are the most expensive."
+        },
+        {
+                "id": 3,
+                "original_id": 3,
+                "question": "Which tool or technique is used in the Plan Scope Management process?",
+                "options": {
+                        "A": "Document analysis",
+                        "B": "Observations",
+                        "C": "Product analysis",
+                        "D": "Expert judgment"
+                },
+                "correctAnswer": "D",
+                "explanation": "According to the PMBOK\u00ae Guide, the Plan Scope Management process is the process of creating a\nscope management plan that documents how the project and product scope will be defined,\nvalidated, and controlled. This process occurs early in the Planning Process Group.\nExpert Judgment: This is a standard tool and technique for the Plan Scope Management process. It\ninvolves input from individuals or groups with specialized knowledge or training in similar projects,\nthe specific industry, or the technical area. Experts help define how the scope will be managed based\non organizational culture, complexity, and historical information.\nQuestions and Answers PDF 4/1621\n\n\nQuestions & Answers PDF P-5\n\nOther Tools for this Process: In addition to Expert Judgment, this process utilizes Data Analysis\n(specifically alternatives analysis) and Meetings.\nWhy the other options are incorrect:\nA . Document analysis: This is a tool and technique used in the Collect Requirements process, not\nPlan Scope Management. It involves reviewing existing documentation to identify requirements.\nB . Observations: Also known as \"job shadowing,\" this is a tool and technique used in Collect\nRequirements to understand business processes or requirements that users may find difficult to\narticulate.\nC . Product analysis: This is a tool and technique used in the Define Scope process. It involves\ndefining the product and its requirements in more detail through techniques like systems\nengineering or value engineering."
+        },
+        {
+                "id": 4,
+                "original_id": 4,
+                "question": "Which tool or technique is an examination of industry and specific vendor capabilities?",
+                "options": {
+                        "A": "Independent estimates",
+                        "B": "Market research",
+                        "C": "Analytical techniques",
+                        "D": "Bidder conferences"
+                },
+                "correctAnswer": "B",
+                "explanation": "According to the PMBOK\u00ae Guide, specifically within the Plan Procurement Management process,\nMarket Research is a key tool and technique used to gather information about the availability of\nproducts, services, and the capabilities of specific providers in the marketplace.\nMarket Research: This technique involves examining industry and specific vendor capabilities. Project\nteams use it to refine procurement strategies, identify potential sellers, and understand market\nconditions. It often includes leveraging conferences, online reviews, and specialized journals to\ndetermine if the required deliverables can be provided by existing vendors or if a different approach\nQuestions and Answers PDF 5/1621\n\n\nQuestions & Answers PDF P-6\n\nis necessary.\nStrategic Alignment: By performing market research early, the project manager ensures that the\nprocurement requirements are realistic and that there are enough qualified vendors to ensure\ncompetitive bidding.\nWhy the other options are incorrect:\nA . Independent estimates: These are used during the Conduct Procurements process as a \"sanity\ncheck\" to compare vendor bid prices against an internally developed or third-party cost estimate.\nThey do not examine vendor capabilities.\nC . Analytical techniques: While a broad term, in a procurement context, this usually refers to \"Make-\nor-Buy Analysis,\" which focuses on whether the project team should produce an item internally or\npurchase it externally, rather than researching the vendors themselves.\nD . Bidder conferences: These are meetings held during the Conduct Procurements process between\nthe buyer and all prospective sellers before the submittal of a bid or proposal. Their purpose is to\nensure all sellers have a clear, common understanding of the procurement requirements, not to\nresearch the industry at large."
+        },
+        {
+                "id": 5,
+                "original_id": 5,
+                "question": "An input used in developing the communications management plan is:",
+                "options": {
+                        "A": "Communication models.",
+                        "B": "Enterprise environmental factors.",
+                        "C": "Organizational communications,",
+                        "D": "Organizational cultures and styles."
+                },
+                "correctAnswer": "B",
+                "explanation": "According to the PMBOK\u00ae Guide, the Plan Communications Management process is the process of\ndeveloping an appropriate approach and plan for project communication activities based on the\ninformation needs of each stakeholder or group.\nQuestions and Answers PDF 6/1621\n\n\nQuestions & Answers PDF P-7\n\nEnterprise Environmental Factors (EEFs): These are a primary input to this process. EEFs refer to\nconditions, not under the immediate control of the project team, that influence, constrain, or direct\nthe project. In the context of communications, these include organizational culture, structures, and\nexisting human resources. They specifically influence how the communication plan is shaped by\nidentifying what communication channels are available, the geographic distribution of facilities, and\nthe established communication tools.\nOther Inputs: Other standard inputs for this process include the Project Charter, Project Management\nPlan (specifically the Resource Management Plan and Stakeholder Engagement Plan), Project\nDocuments (like the Stakeholder Register), and Organizational Process Assets (OPAs).\nWhy the other options are incorrect:\nA . Communication models: These are categorized as Tools and Techniques (specifically under\nCommunication Technology/Methods) used during the process to facilitate the exchange of\ninformation, rather than being an input document or condition.\nC . Organizational communications: This is an output of the Manage Communications process (the\nexecution phase), representing the actual artifacts produced (emails, reports, presentations), not an\ninput for planning.\nD . Organizational cultures and styles: While these are important, they are technically a subset of\nEnterprise Environmental Factors. In PMI examination logic, if both a specific factor and its parent\ncategory (EEFs) are listed, the official \"Input\" as defined in the PMBOK\u00ae Guide process map is the\nhigher-level category (Enterprise Environmental Factors)."
+        },
+        {
+                "id": 6,
+                "original_id": 6,
+                "question": "Regression analysis, failure mode and effect analysis (FMEA), fault tree analysis (FTA), and trend analysis are examples of which tool or technique?",
+                "options": {
+                        "A": "Expert judgment",
+                        "B": "Forecasting methods",
+                        "C": "Earned value management",
+                        "D": "Analytical techniques"
+                },
+                "correctAnswer": "D",
+                "explanation": "According to the PMBOK\u00ae Guide, specifically within the Monitor and Control Project Work process,\nthese specific methods are categorized under Data Analysis, which falls under the broader umbrella\nof Analytical techniques.\nAnalytical Techniques: These are used to evaluate, study, or forecast potential outcomes based on\nvariations of project or environmental variables and their relationships with other variables.\nRegression Analysis: Used to examine the relationship between a dependent variable and one or\nmore independent variables to predict future performance.\nFailure Mode and Effect Analysis (FMEA): A procedure in which each potential failure mode in every\ncomponent of a product is analyzed to determine its effect on the reliability of that component and\non the system.\nFault Tree Analysis (FTA): A top-down, deductive failure analysis in which an undesired state of a\nsystem is analyzed using Boolean logic to combine a series of lower-level events.\nTrend Analysis: Uses mathematical models to forecast future outcomes based on historical results.\nWhy the other options are incorrect:\nA . Expert judgment: While experts may perform these analyses, the specific mathematical and\nlogical models listed (Regression, FMEA, FTA) are defined as techniques of data analysis, not the\njudgment itself.\nB . Forecasting methods: While trend and regression analysis can be used for forecasting, FMEA and\nFTA are primarily risk and quality analysis tools used to identify failures, not necessarily to forecast\nproject completion dates or costs.\nC . Earned value management (EVM): EVM is a specific methodology that combines scope, schedule,\nand resource measurements. While it uses some analytical logic (like CPI and SPI), it does not\nencompass the structural failure or logical deduction models like FTA or FMEA."
+        },
+        {
+                "id": 7,
+                "original_id": 7,
+                "question": "The Perform Quality Assurance process occurs in which Process Group?",
+                "options": {
+                        "A": "Executing",
+                        "B": "Monitoring and Controlling",
+                        "C": "Initiating",
+                        "D": "Planning"
+                },
+                "correctAnswer": "A",
+                "explanation": "According to the PMBOK\u00ae Guide, the process traditionally known as Perform Quality Assurance\n(which is renamed/integrated as Manage Quality in more recent editions like the 6th Edition) is a key\nprocess within the Executing Process Group.\nExecuting Process Group: This group consists of those processes performed to complete the work\ndefined in the project management plan to satisfy the project specifications. Since Quality Assurance\ninvolves auditing the quality requirements and the results from quality control measurements to\nensure that appropriate quality standards and operational definitions are used, it is an active part of\n\"managing\" the project's execution.\nPurpose: The primary focus of this process is to increase the probability that the project will meet the\nquality standards and to improve the processes being used to create the deliverables. It is often\nreferred to as the \"organizational\" or \"process-oriented\" aspect of quality.\nWhy the other options are incorrect:\nB . Monitoring and Controlling: This group contains the Control Quality process. While Quality\nAssurance (Manage Quality) and Control Quality are closely related, Control Quality is focused on the\nphysical deliverables (outputs), whereas Quality Assurance is focused on the processes (execution)\nused to create those deliverables.\nC . Initiating: This group focuses on defining a new project or phase and obtaining authorization (e.g.,\nDevelop Project Charter). Quality processes are not defined or performed at this high level.\nD . Planning: This group contains the Plan Quality Management process, which identifies quality\nrequirements and standards for the project and its deliverables. Planning determines what will be\ndone, while Executing (Quality Assurance) ensures it is being done correctly."
+        },
+        {
+                "id": 8,
+                "original_id": 8,
+                "question": "Enterprise environmental factors are an input to which process?",
+                "options": {
+                        "A": "Control Scope",
+                        "B": "Define Scope",
+                        "C": "Plan Scope Management",
+                        "D": "Collect Requirements"
+                },
+                "correctAnswer": "C",
+                "explanation": "According to the PMBOK\u00ae Guide, specifically the mapping of inputs, tools, techniques, and outputs\n(ITTOs), Enterprise Environmental Factors (EEFs) serve as a formal input to the Plan Scope\nManagement process.\nPlan Scope Management: This is the process of creating a scope management plan that documents\nhow the project and product scope will be defined, validated, and controlled.\nRole of EEFs: Because this process sets the framework for all other scope activities, it must account\nfor external and internal factors such as the organization's culture, infrastructure, personnel\nadministration, and marketplace conditions. These factors influence how scope will be managed\n(e.g., a highly bureaucratic organization will require more formal scope change procedures than a\nstartup).\nConsistency across Planning: In PMI methodology, EEFs are standard inputs to almost all Planning\nprocesses across different Knowledge Areas, as they provide the context and constraints within\nwhich the plans must be developed.\nWhy the other options are incorrect:\nA . Control Scope: This is a Monitoring and Controlling process. The inputs here are typically the\nProject Management Plan, project documents, work performance data, and Organizational Process\nAssets (OPAs). EEFs are generally not an input to the \"Control\" phase of scope.\nB . Define Scope: The inputs for this process include the Project Charter, Project Management Plan,\nand various project documents (like the Requirements Documentation). While EEFs influence the\nproject, they are not listed as a standard formal input for the specific process of writing the Project\nScope Statement.\nD . Collect Requirements: Similar to Define Scope, this process relies on the Project Charter, Project\nManagement Plan, and Project Documents. It focuses on gathering stakeholder needs rather than\nQuestions and Answers PDF 10/1621\n\n\nQuestions & Answers PDF P-11\n\nthe environmental constraints provided by EEFs."
+        },
+        {
+                "id": 9,
+                "original_id": 9,
+                "question": "Which process develops options and actions to enhance opportunities and reduce threats to project objectives?",
+                "options": {
+                        "A": "Identify Risks",
+                        "B": "Control Risks",
+                        "C": "Plan Risk Management",
+                        "D": "Plan Risk Responses"
+                },
+                "correctAnswer": "D",
+                "explanation": "According to the PMBOK\u00ae Guide, the process of Plan Risk Responses is specifically defined as the\nprocess of developing options, selecting strategies, and agreeing on actions to address overall\nproject risk exposure, as well as to treat individual project risks.\nAddressing Threats and Opportunities: This process identifies specific ways to handle risks. For\nthreats (negative risks), strategies include Avoid, Transfer,Mitigate, or Accept. For opportunities\n(positive risks), strategies include Exploit, Share, Enhance, or Accept.\nEnhancing and Reducing: The primary goal is to \"enhance opportunities\" by increasing their\nprobability or impact and to \"reduce threats\" by decreasing their probability or impact.\nAction-Oriented: Unlike the identification or analysis phases, this process results in the Risk\nResponse Plan, which is integrated into the Project Management Plan and includes budget and\nschedule allocations for the chosen responses.\nWhy the other options are incorrect:\nA . Identify Risks: This is the process of determining which risks may affect the project and\ndocumenting their characteristics. It focuses on finding the risks, not on developing the actions to fix\nthem.\nQuestions and Answers PDF 11/1621\n\n\nQuestions & Answers PDF P-12\n\nB . Control Risks (referred to as Monitor Risks in newer editions): This is a Monitoring and Controlling\nprocess. It involves tracking identified risks, monitoring residual risks, identifying new risks, and\nevaluating risk process effectiveness. It does not \"develop\" the initial options; it ensures the\ndeveloped options are working.\nC . Plan Risk Management: This process defines how to conduct risk management activities for a\nproject. It establishes the \"methodology\" and \"rules of engagement\" for risk management but does\nnot address specific individual risks or their response actions."
+        },
+        {
+                "id": 10,
+                "original_id": 10,
+                "question": "The process of establishing the policies, procedures, and documentation for planning, developing, managing, executing, and controlling the project schedule is known as:",
+                "options": {
+                        "A": "Plan Schedule Management.",
+                        "B": "Develop Project Charter .",
+                        "C": "Develop Schedule.",
+                        "D": "Plan Scope Management."
+                },
+                "correctAnswer": "A",
+                "explanation": "According to the PMBOK\u00ae Guide, specifically within the Project Schedule Management knowledge\narea, Plan Schedule Management is the first process performed.\nCore Function: This process is dedicated to establishing the \"rules of engagement\" for the project's\ntimeline. It results in the Schedule Management Plan, which is a subsidiary component of the Project\nManagement Plan.\nKey Responsibilities: It defines how the project schedule will be created (tools and methodologies),\nhow it will be measured (units of measure like hours or days), how it will be maintained, and how\nvariances will be managed.\nDocumentation: It provides the guidance and direction on how the project schedule will be managed\nthroughout the project. Without this process, there would be no formal agreement on how to\ndevelop or control the schedule.\nQuestions and Answers PDF 12/1621\n\n\nQuestions & Answers PDF P-13\n\nWhy the other options are incorrect:\nB . Develop Project Charter: This is an Initiation process. While it may include a high-level summary\nmilestone schedule, it does not establish the detailed policies or procedures for managing the\nschedule throughout the project life cycle.\nC . Develop Schedule: This is the process of analyzing activity sequences, durations, resource\nrequirements, and schedule constraints to create the Project Schedule model. This process uses the\npolicies established in Plan Schedule Management but does not create the policies themselves.\nD . Plan Scope Management: This process is concerned with the Project Scope, not the schedule. It\nestablishes the policies and procedures for defining, validating, and controlling the project scope.\nQuestions and Answers PDF 13/1621\n\n\nQuestions & Answers PDF P-14"
+        },
+        {
+                "id": 11,
+                "original_id": 11,
+                "question": "Which input to the Manage Stakeholder Engagement process is used to document changes that occur during the project?",
+                "options": {
+                        "A": "Issue log",
+                        "B": "Change log",
+                        "C": "Expert judgment",
+                        "D": "Change requests"
+                },
+                "correctAnswer": "B",
+                "explanation": "According to the PMBOK\u00ae Guide, the Manage Stakeholder Engagement process is the process of\ncommunicating and working with stakeholders to meet their needs and expectations, address issues,\nand foster appropriate stakeholder engagement.\nChange Log: This is a specific Project Document used as an input to this process. The change log is\nused to document changes that occur during a project. These changes\u2014and their impact on the\nproject in terms of time, cost, and risk\u2014must be communicated to the appropriate stakeholders to\nmanage their expectations and maintain their support.\nPurpose in Stakeholder Engagement: When a change is approved or rejected, it affects various\nstakeholders. The project manager uses the change log to ensure they are proactively addressing\nhow these changes might shift a stakeholder's level of engagement or concerns.\nWhy the other options are incorrect:\nA . Issue log: While also an input to this process, the issue log is used to document and monitor\ncurrent problems or gaps that need to be addressed. It does not formally document the \"changes\" to\nthe project scope, schedule, or budget in the way the change log does.\nC . Expert judgment: This is a Tool and Technique, not an input. It involves the specialized knowledge\nof individuals or groups to help manage stakeholder expectations.\nD . Change requests: These are typically an output of this process (or other monitoring and\ncontrolling processes). Change requests are the formal proposals to modify a document, deliverable,\nor baseline; the record of what happened to those requests is what resides in the Change Log.\nQuestions and Answers PDF 14/1621\n\n\nQuestions & Answers PDF P-15"
+        },
+        {
+                "id": 12,
+                "original_id": 12,
+                "question": "An input to the Plan Stakeholder Management process is:",
+                "options": {
+                        "A": "The project charter .",
+                        "B": "The stakeholder analysis.",
+                        "C": "A communication management plan.",
+                        "D": "A stakeholder register ."
+                },
+                "correctAnswer": "D",
+                "explanation": "According to the PMBOK\u00ae Guide, the Plan Stakeholder Engagement process (referred to as Plan\nStakeholder Management in earlier editions) is the process of developing approaches to involve\nproject stakeholders based on their needs, expectations, interests, and potential impact on the\nproject.\nStakeholder Register: This is a critical Project Document and a primary input to this process. It\nprovides the list of all identified stakeholders along with their classification, interests, and influence\nlevels. You cannot plan how to manage or engage stakeholders without first having the list of who\nthey are and what their requirements are, which is exactly what the register provides.\nLogical Flow: The process of Identify Stakeholders produces the Stakeholder Register as an output.\nThat register then flows directly into Plan Stakeholder Engagement as an input so that the project\nmanager can create a tailored engagement strategy.\nWhy the other options are incorrect:\nA . The project charter: While the project charter is an input to the Identify Stakeholders process\n(because it lists high-level stakeholders and sponsors), it is typically not the primary input for the\ndetailed Planning of stakeholder engagement. The register is more specific and refined.\nB . The stakeholder analysis: This is a Tool and Technique used within the processes (both Identify\nStakeholders and Plan Stakeholder Engagement) to gather and evaluate information. It is the action\nof analyzing, not a standalone input document.\nQuestions and Answers PDF 15/1621\n\n\nQuestions & Answers PDF P-16\n\nC . A communication management plan: This is usually an output developed alongside or after the\nstakeholder engagement plan. While the two are closely linked, the Stakeholder Engagement Plan\ndefines the \"why\" and \"who\" of engagement, while the Communications Management Plan defines\nthe \"how,\" \"when,\" and \"what.\""
+        },
+        {
+                "id": 13,
+                "original_id": 13,
+                "question": "An input to the Plan Cost Management process is:",
+                "options": {
+                        "A": "Cost estimates.",
+                        "B": "Resource calendars,",
+                        "C": "The project charter,",
+                        "D": "The risk register ."
+                },
+                "correctAnswer": "C",
+                "explanation": "According to the PMBOK\u00ae Guide, the Plan Cost Management process is the process of defining how\nthe project costs will be estimated, budgeted, managed, monitored, and controlled. This process\noccurs early in the Planning Process Group.\nThe Project Charter: This is a critical input to the Plan Cost Management process. The project charter\nprovides the high-level project description and boundaries from which the detailed costs are derived.\nCrucially, it contains the preapproved financial resources (the high-level budget) from which the\ndetailed cost management plan must be developed. It also defines the project approval\nrequirements that will influence how costs are managed.\nOther Inputs: Along with the Project Charter, other inputs include the Project Management Plan\n(specifically the schedule and risk management plans), Enterprise Environmental Factors, and\nOrganizational Process Assets.\nWhy the other options are incorrect:\nA . Cost estimates: These are an output of the Estimate Costs process. You cannot have detailed cost\nestimates before you have created the Plan Cost Management document, which defines how to\ncreate those estimates.\nQuestions and Answers PDF 16/1621\n\n\nQuestions & Answers PDF P-17\n\nB . Resource calendars: These are an input to the Estimate Activity Durations and Estimate Costs\nprocesses. They show when and for how long identified project resources will be available. While\nthey influence the total cost, they are not used to establish the high-level policy of \"how\" to manage\ncosts.\nD . The risk register: The risk register is an input to Estimate Costs and Determine Budget, as risks\n(threats and opportunities) have financial impacts that require contingency reserves. However, it is\nnot a standard input to the initial Plan Cost Management process, which focuses on the methodology\nrather than specific risk events."
+        },
+        {
+                "id": 14,
+                "original_id": 14,
+                "question": "A technique used to determine the cause and degree of difference between baseline and actual performance is:",
+                "options": {
+                        "A": "Product analysis.",
+                        "B": "Variance analysis.",
+                        "C": "Document analysis,",
+                        "D": "Decomposition."
+                },
+                "correctAnswer": "B",
+                "explanation": "According to the PMBOK\u00ae Guide, specifically within the Monitoring and Controlling Process Group,\nVariance Analysis is a key data analysis technique used across multiple knowledge areas (Scope,\nSchedule, Cost).\nCause and Degree of Difference: The primary purpose of variance analysis is to review the difference\n(or variance) between planned performance (the Baseline) and actual performance. It involves:\nDetermining the cause: Investigating why the variance occurred (e.g., resource shortages, scope\ncreep, or underestimated durations).\nDetermining the degree: Quantifying how far off the project is from its baseline (e.g., $5,000 over\nbudget or 3 days behind schedule).\nQuestions and Answers PDF 17/1621\n\n\nQuestions & Answers PDF P-18\n\nDecision Making: By understanding the cause and degree, the project manager can determine if\ncorrective or preventive actions are required to bring the project back into alignment with the\nmanagement plan.\nWhy the other options are incorrect:\nA . Product analysis: This is a tool used in the Define Scope process to translate high-level product\ndescriptions into meaningful deliverables. It does not measure performance against a baseline.\nC . Document analysis: This is a data gathering technique used in Collect Requirements or Identify\nStakeholders to elicit requirements by analyzing existing documentation.\nD . Decomposition: This is a technique used in Create WBS and Define Activities. It involves breaking\ndown project scope and deliverables into smaller, more manageable components. It is a planning\ntool, not a performance measurement tool."
+        },
+        {
+                "id": 15,
+                "original_id": 15,
+                "question": "The process of identifying and documenting project roles, responsibilities, required skills, and reporting relationships and creating a staffing management plan is known as:",
+                "options": {
+                        "A": "Develop Project Team.",
+                        "B": "Manage Project Team.",
+                        "C": "Acquire Project Team.",
+                        "D": "Plan Human Resource Management."
+                },
+                "correctAnswer": "D",
+                "explanation": "According to the PMBOK\u00ae Guide (specifically within the Project Resource Management knowledge\narea, formerly known as Human Resource Management), Plan Human Resource Management is the\nprocess of identifying and documenting project roles, responsibilities, required skills, reporting\nrelationships, and creating a staffing management plan.\nCore Function: This process provides guidance on how project human resources should be defined,\nstaffed, managed, and eventually released. It ensures that the project has sufficient human resources\nQuestions and Answers PDF 18/1621\n\n\nQuestions & Answers PDF P-19\n\nwith the necessary skills for project success.\nKey Outputs: The primary output is the Human Resource Management Plan (or Resource\nManagement Plan), which includes:\nRoles and Responsibilities: Defining who does what (often using a RACI chart).\nProject Organization Charts: A visual display of project team members and their reporting\nrelationships.\nStaffing Management Plan: A document describing when and how team members will be acquired\nand how long they will be needed.\nWhy the other options are incorrect:\nA . Develop Project Team: This is the process of improving competencies, team member interaction,\nand the overall team environment to enhance project performance. It happens during Execution\nafter the team is already hired.\nB . Manage Project Team: This is the process of tracking team member performance, providing\nfeedback, resolving issues, and managing team changes to optimize project performance.\nC . Acquire Project Team: This is the process of confirming human resource availability and obtaining\nthe team necessary to complete project activities. This is the \"hiring\" or \"assignment\" phase, not the\n\"planning\" phase."
+        },
+        {
+                "id": 16,
+                "original_id": 16,
+                "question": "Which type of dependency is legally or contractually required or inherent in the nature of work and often involves physical limitations?",
+                "options": {
+                        "A": "Mandatory",
+                        "B": "Discretionary",
+                        "C": "Internal",
+                        "D": "External"
+                },
+                "correctAnswer": "A",
+                "explanation": "According to the PMBOK\u00ae Guide, specifically within the Sequence Activities process of Project\nSchedule Management, there are four types of dependencies used to define the logical relationship\nbetween activities.\nMandatory Dependencies: These are also known as \"hard logic\" or \"hard dependencies.\" They are\nlegally or contractually required or inherent in the nature of the work. These dependencies often\ninvolve physical limitations. For example, on a construction project, you cannot build the walls until\nthe foundation is poured and set. This is a physical requirement of the work itself.\nAttributes: Mandatory dependencies are typically fixed and cannot be easily changed by the project\nteam without changing the fundamental nature of the project or violating legal/safety standards.\nWhy the other options are incorrect:\nB . Discretionary: Also known as \"preferred logic,\" \"soft logic,\" or \"preferential logic.\" These are\nbased on best practices or specific sequences desired by the team even though other sequences are\npossible. They are not legally or physically required.\nC . Internal: These involve a precedence relationship between project activities and are generally\nwithin the project team\u2019s control. While a dependency can be both mandatory and internal, the\nquestion's specific definition of \"legally/contractually required\" points directly to the classification of\nMandatory.\nD . External: These involve a relationship between project activities and non-project activities (e.g.,\nwaiting for a government permit or a delivery from a vendor). While these can be mandatory, the\nprimary definition of work inherent to the nature of the task and physical limitations is the hallmark\nof a Mandatory dependency."
+        },
+        {
+                "id": 17,
+                "original_id": 17,
+                "question": "During which process does a project manager review all prior information to ensure that all project work is completed and that the project has met its objectives?",
+                "options": {
+                        "A": "Monitor and Control Project Work",
+                        "B": "Perform Quality Assurance",
+                        "C": "Close Project or Phase",
+                        "D": "Control Scope"
+                },
+                "correctAnswer": "C",
+                "explanation": "As per the PMBOK\u00ae Guide, the Close Project or Phase process is the final process in the project life\ncycle (or a specific phase) within the Closing Process Group.\nFinal Review and Verification: During this process, the project manager reviews the Project\nManagement Plan and all prior information from previous phase closures to ensure that all project\nwork is completed and that the project has met its objectives.\nAdministrative Closure: It involves the administrative activities necessary to formally bypass the\nproject or phase. This includes gathering project records, iterating through the final lessons learned,\narchiving project information, and releasing project resources.\nObjective Fulfillment: The project manager must confirm that all deliverables have been accepted by\nthe customer (Validated Scope) and that all contractual obligations have been met. If the project is\nterminated before completion, this process is still performed to investigate and document the\nreasons for the early closure.\nQuestions and Answers PDF 21/1621\n\n\nQuestions & Answers PDF P-22\n\nWhy the other options are incorrect:\nA . Monitor and Control Project Work: This is an ongoing process throughout the project. It focuses\non tracking, reviewing, and reporting overall progress to meet the performance objectives defined in\nthe project management plan. It does not signify the final \"completion\" review.\nB . Perform Quality Assurance (Manage Quality): This process is focused on the Executing phase. Its\npurpose is to ensure that the project is using the correct quality standards and processes. It is not a\nsummary review of the entire project's objectives.\nD . Control Scope: This is a Monitoring and Controlling process that tracks the status of the project\nand product scope and manages changes to the scope baseline. While it ensures scope is handled\ncorrectly, the final sign-off and summary review belong to the Closing phase."
+        },
+        {
+                "id": 18,
+                "original_id": 18,
+                "question": "An input to the Manage Project Team process is:",
+                "options": {
+                        "A": "Work performance reports.",
+                        "B": "Change requests.",
+                        "C": "Activity resource requirements.",
+                        "D": "Enterprise environmental factors."
+                },
+                "correctAnswer": "A",
+                "explanation": "According to the PMBOK\u00ae Guide, the Manage Project Team process is the process of tracking team\nmember performance, providing feedback, resolving issues, and managing team changes to optimize\nproject performance. This process is part of the Executing Process Group.\nWork Performance Reports: These are a formal input to this process. Work performance reports are\nthe physical or electronic representation of work performance information intended to generate\ndecisions, actions, or awareness. In the context of managing a team, these reports provide\ndocumentation about the project's status compared to the project forecast. They help the project\nmanager determine reward and recognition needs, identify resource gaps, and assess how the team\nis performing against the schedule and budget baselines.\nUse in Management: By reviewing these reports, a project manager can identify if a specific team\nmember or sub-group is struggling or excelling, allowing for targeted coaching or adjustments to the\nResource Management Plan.\nWhy the other options are incorrect:\nB . Change requests: These are an output of the Manage Project Team process. When the project\nmanager identifies that team changes are necessary (e.g., replacing a team member or adjusting\nroles), a formal change request is generated to update the Project Management Plan.\nC . Activity resource requirements: This is an input to the Acquire Resources (formerly Acquire\nProject Team) process. It identifies the types and quantities of resources required for each activity in\na work package. By the time you are managing the team, these requirements should have already\nbeen met.\nD . Enterprise environmental factors: While EEFs are inputs to the Planning and Acquisition of\nQuestions and Answers PDF 23/1621\n\n\nQuestions & Answers PDF P-24\n\nresources, the standard ITTO (Input, Tool, Technique, Output) mapping for Manage Project Team\nspecifically focuses on Project Staff Assignments, Team Performance Assessments, and Issue Logs as\nthe primary human-related inputs. Note: In some versions of the guide, EEFs are listed as general\ninfluences, but Work Performance Reports is the most specific, high-value document used to drive\nthe \"management\" of the team."
+        },
+        {
+                "id": 19,
+                "original_id": 19,
+                "question": "Which input provides suppliers with a clear set of goals, requirements, and outcomes?",
+                "options": {
+                        "A": "Procurement statement of work",
+                        "B": "Purchase order",
+                        "C": "Source selection criteria",
+                        "D": "Bidder conference"
+                },
+                "correctAnswer": "A",
+                "explanation": "According to the PMBOK\u00ae Guide, the Procurement Statement of Work (SOW) is a critical document\ndeveloped during the Plan Procurement Management process.\nDefinition and Purpose: The Procurement SOW describes the procurement item in sufficient detail to\nallow prospective sellers to determine if they are capable of providing the products, services, or\nresults."
+        },
+        {
+                "id": 27,
+                "original_id": 27,
+                "question": "Which quality management and control tool is useful in visualizing parent-to-child relationships in any decomposition hierarchy that uses a systematic set of rules that define a nesting relationship?",
+                "options": {
+                        "A": "Interrelationship digraphs",
+                        "B": "Tree diagram",
+                        "C": "Affinity diagram",
+                        "D": "Network diagram"
+                },
+                "correctAnswer": "B",
+                "explanation": "According to the PMBOK\u00ae Guide, specifically within the Manage Quality process (formerly Perform\nQuality Control/Assurance), Tree Diagrams are one of the \"Quality Management and Control Tools\"\nused to visualize data and relationships.\nDecomposition Hierarchy: A tree diagram is used to represent a hierarchy of tasks or relationships. It\nis particularly useful for visualizing parent-to-child relationships in any decomposition hierarchy\n(such as the Work Breakdown Structure (WBS), Resource Breakdown Structure (RBS), or\nOrganizational Breakdown Structure (OBS)).\nQuestions and Answers PDF 33/1621\n\n\nQuestions & Answers PDF P-34\n\nNesting Relationships: The tool uses a systematic set of rules to define how one element \"nests\" or\nsits within another .It starts with a single root (the parent) and branches out into multiple levels of\ndetail (the children), ensuring that the horizontal or vertical flow represents the logic of the\ndecomposition.\nApplication in Quality: In a quality context, tree diagrams can be used to link high-level quality goals\nto the specific, granular activities required to achieve them, or to map out the potential results of a\ndecision-making process (such as a decision tree).\nWhy the other options are incorrect:\nA . Interrelationship digraphs: These are used to identify complex underlying causes or relationships\nin a problem. They show \"many-to-many\" relationships rather than a strict, nested parent..."
+        },
+        {
+                "id": 32,
+                "original_id": 32,
+                "question": "A project charter is an output of which Process Group?",
+                "options": {
+                        "A": "Executing",
+                        "B": "Planning",
+                        "C": "Initiating",
+                        "D": "Closing"
+                },
+                "correctAnswer": "C",
+                "explanation": "As defined in the PMBOK\u00ae Guide and the Standard for Project Management, the development of a\nproject charter is a critical activity within the Initiating Process Group.\nSpecifically, the process is titled Develop Project Charter .This process formally authorizes the\nexistence of a project or a new project phase and provides the project manager with the authority..."
+        },
+        {
+                "id": 39,
+                "original_id": 39,
+                "question": "An output of the Validate Scope process is:",
+                "options": {
+                        "A": "A requirements traceability matrix.",
+                        "B": "The scope management plan.",
+                        "C": "Work performance reports.",
+                        "D": "Change requests."
+                },
+                "correctAnswer": "D",
+                "explanation": "According to the PMBOK\u00ae Guide and the Standard for Project Management, the Validate Scope\nprocess is the process of formalizing acceptance of the completed project deliverables. It belongs to\nthe Monitoring and Controlling Process Group.\nWhile the primary goal of this process is to obtain Accepted Deliverables, it frequently results in\nChange Requests. According to PMI standards, if deliverables are inspected and do not meet the\nacceptance criteria established in the scope documentation, change requests are created for defect\nrepair or enhancement. These requests are then processed through the Perform Integrated Change\nControl process.\nThe outputs of Validate Scope include:\nAccepted Deliverables: Deliverables that meet acceptance criteria and are formally signed off by the\ncustomer or sponsor .\nChange Requests: Requests for modifications or repairs to deliverables that were not accepted.\nWork Performance Information: Includes data on which deliverables have been started, their\nprogress, or which have been finished and accepted.\nQuestions and Answers PDF 47/1621\n\n\nQuestions & Answers PDF P-48\n\nProject Documents Updates: Updates to documents such as the Requirements Traceability Matrix or\nLessons Learned Register .\nThe other options are incorrect based on their classification in the PMI framework:\nA requirements traceability matrix: This is an input to the Validate Scope process, used to compare\nrequirements against the actual results. It is an output of the Collect Requirements process.\nThe scope management plan: This is an input to Validate Scope, as it contains the procedures for\nformalizing acceptance. It is an output of the Plan Scope Management process.\nWork performance reports: These are outputs of the Monitor and Control Project Work process and\nserve as inputs to several other processes; they are not generated by Validate Scope.\nAs per the PMI Lexicon of Project Management Terms, the Validate Scope process is primarily\nconcerned with the acceptance of the deliverables, whereas Quality Control is concerned with the\ncorrectness of the deliverables."
+        },
+        {
+                "id": 40,
+                "original_id": 40,
+                "question": "The Perform Integrated Change Control process occurs in which Process Group?",
+                "options": {
+                        "A": "Initiating",
+                        "B": "Executing",
+                        "C": "Monitoring and Controlling",
+                        "D": "Planning"
+                },
+                "correctAnswer": "C",
+                "explanation": "According to the PMBOK\u00ae Guide and the Standard for Project Management, the Perform Integrated..."
+        },
+        {
+                "id": 47,
+                "original_id": 47,
+                "question": "An output of the Develop Project Team process is:",
+                "options": {
+                        "A": "Organizational process assets.",
+                        "B": "Enterprise environmental factors updates.",
+                        "C": "Project staff assignments.",
+                        "D": "Organizational charts and position descriptions."
+                },
+                "correctAnswer": "B",
+                "explanation": "According to the PMBOK\u00ae Guide and the Standard for Project Management, the Develop Team\nprocess (formerly referred to as Develop Project Team) is the process of improving competencies,\nteam member interaction, and the overall team environment to enhance project performance.\nAn essential and often overlooked output of this process is Enterprise Environmental Factors (EEF)\nupdates. As the team develops, their improved skills, morale, and performance become part of the\norganization's human capital. According to PMI standards, these updates include:\nEmployee capability and skill levels: Updates to the organization's records regarding the improved\ncompetencies of individual team members.\nPersonnel administration: Updating training records and performance assessments based on the\ndevelopment activities conducted during the project.\nThe other options are incorrect based on their classification in the PMI framework:\n..."
+        },
+        {
+                "id": 50,
+                "original_id": 50,
+                "question": "The Plan Stakeholder Management process belongs to which Process Group?",
+                "options": {
+                        "A": "Executing",
+                        "B": "Initiating",
+                        "C": "Planning",
+                        "D": "Monitoring and Controlling"
+                },
+                "correctAnswer": "C",
+                "explanation": "According to the PMBOK\u00ae Guide and the Standard for Project Management, the Plan Stakeholder\nEngagement process (referred to as Plan Stakeholder Management in some earlier versions and\nstudy guides) is situated within the Planning Process Group.\nThis process is a key part of the Project Stakeholder Management Knowledge Area. Its primary\npurpose is to develop appropriate management strategies to effectively engage stakeholders\nthroughout the project life cycle, based on the analysis of their needs, interests, and potential impact\non project success.\nThe mapping of the Stakeholder Management processes across Process Groups is as follows:\nInitiating: Identify Stakeholders.\nPlanning: Plan Stakeholder Engagement.\nExecuting: Manage Stakeholder Engagement.\nMonitoring and Controlling: Monitor Stakeholder Engagement.\nThe other options are incorrect based on the PMI Process Group and Knowledge Area Mapping:\nInitiating: This group is where stakeholders are first identified (Identify Stakeholders), but the\nstrategic plan for managing them is developed later .\nExecuting: This group involves the actual \"Manage Stakeholder Engagement\" process, where the\nQuestions and Answers PDF 60/1621\n..."
+        },
+        {
+                "id": 55,
+                "original_id": 55,
+                "question": "Which basic quality tool is most useful when gathering attributes data in an inspection to identify defects?",
+                "options": {
+                        "A": "Control charts",
+                        "B": "Pareto diagrams",
+                        "C": "Ishikavva diagrams",
+                        "D": "Checksheets"
+                },
+                "correctAnswer": "D",
+                "explanation": "Questions and Answers PDF 66/1621\n\n\nQuestions & Answers PDF P-67\n\nAccording to the PMBOK\u00ae Guide and the Standard for Project Management, specifically within the\nControl Quality process, Checksheets (also known as tally sheets) are the primary tool used for\ngathering attributes data during inspections to identify and record defects.\nAs per PMI standards, checksheets are used to organize data in a manner that facilitates the efficient\ncollection of useful data about a potential quality problem. They are particularly effective for:\nGathering Attributes Data: Recording the presence or absence of a specific characteristic (e.g., a\ndefect type) during an inspection.\nFrequency Counting: Keeping track of how often a specific defect occurs.\nData Organization: Providing a structured format so that the data can later be analyzed using other\ntools, such as Pareto diagrams or Histograms.\nThe other options are incorrect based on the following PMI definitions of the \"Seven Basic Quality\nTools\":\nControl charts: These are used to determine whether a process is stable or has predictable\nperformance. They track process variance over time against mean and control limits, but they are not\nthe primary tool for the initial gathering of raw defect counts during an inspection.\nPareto diagrams: These are histograms ordered by frequency of occurrence. They are used to identify\nthe \"vital few\" sources that are responsible for the majority of the effects (the 80/20 rule). While\nthey use the data collected by checksheets, they are an analysis tool, not a gathering tool.\nIshikawa diagrams: (Also known as Fishbone or Cause-and-Effect diagrams) These are used to\nidentify the root causes of a specific problem or defect. They are used for problem-solving and\nbrainstorming, not for the physical gathering of data during an inspection.\nAs per the PMI Lexicon of Project Management Terms, checksheets provide a standardized way for\ninspectors to record observations, ensuring consistency and accuracy in the data used for quality\ncontrol."
+        },
+        {
+                "id": 56,
+                "original_id": 56,
+                "question": "The process of estimating the type and quantity of material, human resources, equipment, or supplies required to perform each activity is known as:",
+                "options": {
+                        "A": "Collect Requirements.",
+                        "B": "Conduct Procurements.",
+                        "C": "Estimate Activity Durations.",
+                        "D": "Estimate Activity Resources."
+                },
+                "correctAnswer": "D",
+                "explanation": "According to the PMBOK\u00ae Guide and the Standard for Project Management, the process described is\nEstimate Activity Resources. This process identifies the type, quantity, and characteristics of\nresources required to complete the project.\nAs per PMI standards, this process is part of the Project Resource Management Knowledge Area\n(specifically within the Planning Process Group). It is closely coordinated with the Estimate Cost\nprocess, as the types and quantities of resources directly impact the project budget. Key aspects\ninclude:\nResource Requirements: Identifying exactly what is needed (e.g., specific skill sets, specific\nmachinery, or specific grades of material).\nBasis of Estimates: Documenting the logic and assumptions used to determine resource needs.\nResource Breakdown Structure (RBS): A hierarchical representation of resources by category and\ntype.\nThe other options are incorrect based on the following PMI definitions:\nCollect Requirements: This is the process of determining, documenting, and managing stakeholder\nneeds and requirements to meet project objectives. It focuses on what the project must produce, not\nthe resources needed to build it.\nConduct Procurements: This is the process of obtaining seller responses, selecting a seller, and\nawarding a contract. It is an Executing process rather than a resource planning process.\nEstimate Activity Durations: This is the process of estimating the number of work periods needed to\ncomplete individual activities with estimated resources. While it relies on the output of Estimate\nActivity Resources, it focuses on time, not the resources themselves.\nAs per the PMI Lexicon of Project Management Terms, Estimate Activity Resources ensures that the\nproject team has a clear understanding of the \"tools of the trade\" required before the schedule is\nfinalized."
+        },
+        {
+                "id": 77,
+                "original_id": 77,
+                "question": "Inputs to the Plan Schedule Management process include:",
+                "options": {
+                        "A": "Organizational process assets and the project charter,",
+                        "B": "Enterprise environmental factors and schedule tools.",
+                        "C": "Time tables and Pareto diagrams.",
+                        "D": "Activity attributes and resource calendars."
+                },
+                "correctAnswer": "A",
+                "explanation": "According to the PMBOK\u00ae Guide and the Standard for Project Management, the Plan Schedule\nManagement process is the first process in the Project Schedule Management Knowledge Area. It\nestablishes the policies, procedures, and documentation for planning, developing, managing,\nexecuting, and controlling the project schedule.\nAs per PMI standards, the inputs to this process are..."
+        },
+        {
+                "id": 88,
+                "original_id": 88,
+                "question": "Lessons learned are created and project resources are released in which Process Group?",
+                "options": {
+                        "A": "Planning",
+                        "B": "Executing",
+                        "C": "Closing",
+                        "D": "Initiating"
+                },
+                "correctAnswer": "C",
+                "explanation": "According to the PMBOK\u00ae Guide and the Standard for Project Management, the activities of finalizing\nlessons learned and releasing project resources occur within the Closing Process Group, specifically\nduring the Close Project or Phase process.\nAs per PMI standards, the Closing Process Group consists of those processes performed to formally\ncomplete or close a project, phase, or contract. This group verifies that the defined processes are\ncompleted within all of the Process Groups to close the project or phase. Key activities include:\nFinalizing Lessons Learned: The project team identifies and documents what went well, what didn't,\nand how to improve future projects. This information is archived in the Lessons Learned Repository\n(an Organizational Process Asset).\nReleasing Resources: This involves..."
+        },
+        {
+                "id": 92,
+                "original_id": 92,
+                "question": "The process of identifying and documenting relationships among the project activities is known as:",
+                "options": {
+                        "A": "Control Schedule.",
+                        "B": "Sequence Activities.",
+                        "C": "Define Activities.",
+                        "D": "Develop Schedule."
+                },
+                "correctAnswer": "B",
+                "explanation": "In accordance with the PMBOK\u00ae Guide (Project Schedule Management), the process of Sequence\nActivities is specifically defined as the process of identifying and documenting relationships among\nthe project activities. The primary purpose of this process is to define the logical sequence of work to\nobtain the greatest efficiency given all project constraints.\nQuestions and Answers PDF 114/1621\n\n\nQuestions & Answers PDF P-115\n\nEvery activity\u2014except the first and last\u2014should be connected to at least one predecessor and at\nleast one successor with an appropriate logical relationship.\nKey Inputs: Project Scope Statement, Activity List, and Activity Attributes.\nKey Tools and Techniques: Precedence Diagramming Method (PDM), which is used to create a project\nschedule network diagram that uses boxes (nodes) to represent activities and connects them with\narrows that show the dependencies.\nKey Outputs: Project Schedule Network Diagrams, which are graphical representations of the logical\nrelationships (dependencies) among the project schedule activities.\nAnalysis of Distractors:\nA . Control Schedule: This is a monitoring and controlling process. It is the process of monitoring the\nstatus of the project to update the project schedule and manage changes to the schedule baseline.\nC . Define Activities: This process involves identifying and documenting the specific actions to be\nperformed to produce the project deliverables. It breaks down work packages into schedule activities\nbut does not establish the links between them.\nD . Develop Schedule: This is the process of analyzing activity sequences, durations, resource\nrequirements, and schedule constraints to create the project schedule model for execution,\nmonitoring, and controlling. Sequencing is a prerequisite for this process."
+        },
+        {
+                "id": 93,
+                "original_id": 93,
+                "question": "Conditions that are not under the control of the project team that influence, direct, or constrain a project are called:",
+                "options": {
+                        "A": "Enterprise environmental factors",
+                        "B": "Work performance reports",
+                        "C": "Organizational process assets",
+                        "D": "Context diagrams"
+                },
+                "correctAnswer": "A",
+                "explanation": "According to the PMBOK\u00ae Guide, specifically in the sections covering the environment in which\nprojects operate, Enterprise Environmental Factors (EEFs) refer to conditions, not under the control\nof the project team, that influence, constrain, or direct the project. These factors can be internal or\nexternal to the organization and are considered inputs to most planning processes.\nInternal EEFs: These include organizational culture, structure, and governance; geographic\ndistribution of facilities and resources; infrastructure; information technology software; and resource\navailability.\nExternal EEFs: These include marketplace conditions; social and cultural influences; legal restrictions;\ncommercial databases; academic research; government or industry standards; and financial\nconsiderations (like currency exchange rates).\nAnalysis of Distractors:\nB . Work performance reports: These are the physical or electronic representation of work\nperformance information compiled in project documents, intended to generate decisions, actions, or\nawareness. They are outputs of the Monitor and Control Project Work process.\nC . Organizational process assets (OPAs): These are the plans, processes, policies, procedures, and\nknowledge bases specific to and used by the performing organization. Unlike EEFs, OPAs are internal\nto the organization and often include \"lessons learned\" or historical templates that the team can\nutilize or update.\nD . Context diagrams: This is a visual representation of the functional scope of a system, showing\nhow it interacts with users and other systems. It is a tool used in the Collect Requirements process,\nnot a term for environmental constraints."
+        },
+        {
+                "id": 94,
+                "original_id": 94,
+                "question": "The organization's perceived balance between risk taking and risk avoidance is reflected in the risk:",
+                "options": {
+                        "A": "Responses",
+                        "B": "Appetite",
+                        "C": "Tolerance",
+                        "D": "Attitude"
+                },
+                "correctAnswer": "D",
+                "explanation": "According to the PMBOK\u00ae Guide (Project Risk Management), the..."
+        },
+        {
+                "id": 100,
+                "original_id": 100,
+                "question": "Risk categorization is a tool or technique used in which process?",
+                "options": {
+                        "A": "Plan Risk Responses",
+                        "B": "Plan Risk Management",
+                        "C": "Perform Qualitative Risk Analysis",
+                        "D": "Perform Quantitative Risk Analysis"
+                },
+                "correctAnswer": "C",
+                "explanation": "According to the PMBOK\u00ae Guide (Project Risk Management), Risk Categorization is a specific tool and\ntechnique used during the Perform Qualitative Risk Analysis process.\nThe primary goal of risk categorization is to group project risks by their sources (e.g., using a Risk\nBreakdown Structure - RBS), by the area of the project affected (e.g., WBS work package), or by other\nuseful categories (e.g., technical, external, environmental, or project management) to identify the\nareas of the project most exposed to the effects of uncertainty.\nGrouping for Effectiveness: By categorizing risks, the project manager can identify common root\ncauses and develop more effective Risk Response Plans.\nRelationship to RBS: The Risk Breakdown Structure is the most common framework used for this\ncategorization, providing a hierarchical representation of potential risk sources.\nAnalysis of Distractors:\nA . Plan Risk Responses: This process focuses on developing strategies (Avoid, Transfer,Mitigate, etc.)\nto address the risks. While it uses the categories identified earlier, categorization itself is an\nanalytical technique performed during the qualitative phase.\nB . Plan Risk Management: This process defines how risk activities will be performed. It creates the\nframework (like the RBS template), but the actual act of categorizing identified risks happens during\nthe qualitative analysis.\nD . Perform Quantitative Risk Analysis: This process uses numerical methods (like Monte Carlo\nsimulations) to analyze the effect of risks. It relies on the prioritization and categorization performed\nin the qualitative step but does not perform the categorization itself."
+        }
+    ];
+
+    let currentIndex = 0;
+    let userAnswers = {};
+    let evaluatedQuestions = {};
+    let isReviewMode = false;
+
+    const quizScreen = document.getElementById('quiz-screen');
+    const resultsScreen = document.getElementById('results-screen');
+    const progressText = document.getElementById('progress-text');
+    const scoreTracking = document.getElementById('score-tracking');
+    const questionTextEl = document.getElementById('question-text');
+    const optionsContainer = document.getElementById('options-container');
+    const explanationBox = document.getElementById('explanation-box');
+    const explanationStatus = document.getElementById('explanation-status');
+    const explanationTextEl = document.getElementById('explanation-text');
+    const prevBtn = document.getElementById('prev-btn');
+    const actionBtn = document.getElementById('action-btn');
+
+    function loadQuestion() {
+        if (questionBank.length === 0) return;
+        const currentQ = questionBank[currentIndex];
+        
+        progressText.innerText = `Question ${currentIndex + 1} of ${questionBank.length}`;
+        updateScoreTracker();
+
+        questionTextEl.innerText = currentQ.question;
+        optionsContainer.innerHTML = '';
+        explanationBox.style.display = 'none';
+
+        prevBtn.disabled = currentIndex === 0;
+
+        const savedAnswer = userAnswers[currentQ.id];
+        const isEvaluated = evaluatedQuestions[currentQ.id];
+
+        Object.keys(currentQ.options).forEach(key => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = `${key}. ${currentQ.options[key]}`;
+
+            if (isReviewMode || isEvaluated) {
+                btn.disabled = true;
+                if (key === currentQ.correctAnswer) {
+                    btn.classList.add('correct');
+                }
+                if (savedAnswer === key && key !== currentQ.correctAnswer) {
+                    btn.classList.add('incorrect');
+                }
+                if (savedAnswer === key) {
+                    btn.classList.add('selected');
+                }
+            } else {
+                if (savedAnswer === key) btn.classList.add('selected');
+                btn.onclick = () => selectOption(key);
+            }
+            optionsContainer.appendChild(btn);
+        });
+
+        if (isReviewMode || isEvaluated) {
+            explanationBox.style.display = 'block';
+            explanationTextEl.innerText = currentQ.explanation;
+            if (savedAnswer === currentQ.correctAnswer) {
+                explanationStatus.innerText = "Correct Summary";
+                explanationStatus.style.color = 'var(--accent-green)';
+                explanationBox.style.borderLeftColor = 'var(--accent-green)';
+            } else {
+                explanationStatus.innerText = "Incorrect / Review Summary";
+                explanationStatus.style.color = 'var(--accent-red)';
+                explanationBox.style.borderLeftColor = 'var(--accent-red)';
+            }
+            actionBtn.innerText = currentIndex === questionBank.length - 1 ? (isReviewMode ? "Back to Results" : "Finish Quiz") : "Next Question";
+        } else {
+            actionBtn.innerText = "Submit Answer";
+            actionBtn.disabled = !savedAnswer;
+        }
+    }
+
+    function selectOption(key) {
+        if (evaluatedQuestions[questionBank[currentIndex].id]) return;
+        userAnswers[questionBank[currentIndex].id] = key;
+        const buttons = optionsContainer.getElementsByClassName('option-btn');
+        Array.from(buttons).forEach((btn, idx) => {
+            const currentKey = Object.keys(questionBank[currentIndex].options)[idx];
+            if (currentKey === key) btn.classList.add('selected');
+            else btn.classList.remove('selected');
+        });
+        actionBtn.disabled = false;
+    }
+
+    function handleAction() {
+        const currentQ = questionBank[currentIndex];
+        const isEvaluated = evaluatedQuestions[currentQ.id];
+
+        if (!isReviewMode && !isEvaluated) {
+            evaluatedQuestions[currentQ.id] = true;
+            loadQuestion();
+        } else {
+            if (currentIndex < questionBank.length - 1) {
+                currentIndex++;
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }
+    }
+
+    function handlePrev() { if (currentIndex > 0) { currentIndex--; loadQuestion(); } }
+
+    function updateScoreTracker() {
+        let accurateCount = 0;
+        let evaluatedCount = Object.keys(evaluatedQuestions).length;
+        questionBank.forEach(q => { if (evaluatedQuestions[q.id] && userAnswers[q.id] === q.correctAnswer) accurateCount++; });
+        scoreTracking.innerText = `Score: ${accurateCount}/${evaluatedCount}`;
+    }
+
+    function showResults() {
+        quizScreen.style.display = 'none';
+        resultsScreen.style.display = 'block';
+        let correctTotal = 0;
+        questionBank.forEach(q => { if (userAnswers[q.id] === q.correctAnswer) correctTotal++; });
+        const scorePercent = Math.round((correctTotal / questionBank.length) * 100);
+        document.getElementById('final-score').innerText = `${scorePercent}%`;
+        document.getElementById('results-summary').innerText = `You correctly answered ${correctTotal} out of ${questionBank.length} questions in this session.`;
+    }
+
+    function enterReviewMode() { isReviewMode = true; resultsScreen.style.display = 'none'; quizScreen.style.display = 'block'; currentIndex = 0; loadQuestion(); }
+    function restartQuiz() { currentIndex = 0; userAnswers = {}; evaluatedQuestions = {}; isReviewMode = false; resultsScreen.style.display = 'none'; quizScreen.style.display = 'block'; loadQuestion(); }
+
+    window.onload = loadQuestion;
+</script>
+</body>
+</html>
